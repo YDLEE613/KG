@@ -1,4 +1,6 @@
 
+
+
 ### import libraries
 import pandas as pd # manage dataset
 import numpy as np
@@ -37,90 +39,6 @@ dataset.Sex.unique()
 
 
 
-### Calculate missing values for Age (use Standard deviation) ###
-import random as rd
-
-# fill missing value in Age for Master
-age_Master = dataset[dataset['Title'] =='Master'].Age.copy()
-age_Master_missing = dataset[dataset['Age'].isnull()].copy()
-age_Master_missing = age_Master_missing[age_Master_missing['Title']=='Master'].Age
-age_Master = age_Master.dropna(how='all')
-assert not age_Master.isnull().any()
-
-age_Master_mean = age_Master.describe()['mean'] 
-age_Master_std = age_Master.describe()['std']   
-age_min = age_Master_mean - age_Master_std
-age_max = age_Master_mean + age_Master_std
-
-for i,val in age_Master_missing.iteritems():
-    age_Master_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Master_missing.keys().tolist()
-
-for i, val in age_Master_missing.iteritems():
-    dataset.loc[i, 'Age'] = val
-
-
-# fill missing value in Age for Mr
-age_Mr = dataset[dataset['Title'] == 'Mr'].Age.copy()
-age_Mr_missing = dataset[dataset['Age'].isnull()].copy()
-age_Mr_missing = age_Mr_missing[age_Mr_missing['Title'] == 'Mr'].Age
-age_Mr = age_Mr.dropna(how='all')
-assert not age_Mr.isnull().any()
-
-age_Mr_mean = age_Mr.describe()['mean'] 
-age_Mr_std = age_Mr.describe()['std']  
-age_min = age_Mr_mean - age_Mr_std
-age_max = age_Mr_mean + age_Mr_std
-
-for i,val in age_Mr_missing.iteritems():
-    age_Mr_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Mr_missing.keys().tolist()
-
-for i, val in age_Mr_missing.iteritems():
-    dataset.loc[i, 'Age'] = val
-
-# fill missing value in Age for Mrs
-age_Mrs = dataset[dataset['Title'] == 'Mrs'].Age.copy()
-age_Mrs_missing = dataset[dataset['Age'].isnull()].copy()
-age_Mrs_missing = age_Mrs_missing[age_Mrs_missing['Title'] == 'Mrs'].Age
-age_Mrs = age_Mrs.dropna(how='all')
-assert not age_Mrs.isnull().any()
-
-age_Mrs_mean = age_Mrs.describe()['mean']
-age_Mrs_std = age_Mrs.describe()['std']  
-age_min = age_Mrs_mean - age_Mrs_std
-age_max = age_Mrs_mean + age_Mrs_std
-
-for i,val in age_Mrs_missing.iteritems():
-    age_Mrs_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Mrs_missing.keys().tolist()
-
-for i, val in age_Mrs_missing.iteritems():
-    dataset.loc[i, 'Age'] = val
-
-# fill missing value in Age for Ms
-age_Ms = dataset[dataset['Title'] == 'Ms'].Age.copy()
-age_Ms_missing = dataset[dataset['Age'].isnull()].copy()
-age_Ms_missing = age_Ms_missing[age_Ms_missing['Title'] == 'Ms'].Age
-age_Ms = age_Ms.dropna(how='all')
-assert not age_Ms.isnull().any()
-
-age_Ms_mean = age_Ms.describe()['mean'] 
-age_Ms_std = age_Ms.describe()['std']   
-age_min = age_Ms_mean - age_Ms_std
-age_max = age_Ms_mean + age_Ms_std
-
-for i,val in age_Ms_missing.iteritems():
-    age_Ms_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Ms_missing.keys().tolist()
-
-for i, val in age_Ms_missing.iteritems():
-    dataset.loc[i, 'Age'] = val
-
 ### Change Title to Categorical Data ###
 # Title vs Survived ratio
 '''
@@ -147,14 +65,14 @@ plt.yticks(np.arange(0, 600, 50))
 plt.legend(loc='upper right')
 plt.show()
 '''
-'''
+
 title_surv = dataset[dataset['Survived'] == 1].groupby('Title')['Survived'].count()
 total_title = dataset.Title.value_counts()
 print('Survival rate for Mr: ' , round(title_surv['Mr']/total_title['Mr'] *100,1),'%')
 print('Survival rate for Ms: ' , round(title_surv['Ms']/total_title['Ms'] *100,1),'%')
 print('Survival rate for Mrs: ' , round(title_surv['Mrs']/total_title['Mrs'] *100,1),'%')
 print('Survival rate for Master: ' , round(title_surv['Master']/total_title['Master'] *100,1),'%')
-'''
+
 # Mrs: 79.7     --> 3
 # Ms: 70.3      --> 2
 # Master: 57.5  --> 1
@@ -162,6 +80,27 @@ print('Survival rate for Master: ' , round(title_surv['Master']/total_title['Mas
 
 # Ordinal Data based on Survival ratio
 dataset.Title = dataset.Title.map({'Mrs':3, 'Ms':2, 'Master':1, 'Mr':0}).astype('int')
+
+
+### Calculate missing values for Age (use Standard deviation) ###
+import random as rd
+each_mean = np.arange(4)
+each_std = np.arange(4)
+# mean calculations
+for i in range(4):
+    age_each = dataset[dataset['Title'] == i].Age.copy()
+    age_each_mean = age_each[age_each.notnull()].describe()['mean']
+    age_each_std = age_each[age_each.notnull()].describe()['std']
+                        
+    for j, val in age_each.isnull().iteritems():
+        if val == True:
+            dataset.loc[j, 'Age'] = rd.uniform(age_each_mean-age_each_std, age_each_mean+age_each_std+1)
+    
+        
+
+
+    
+
 
 '''
 # OHE data
@@ -278,98 +217,6 @@ testset['Title'] = np.select(conditions, choices, default = 'Mr')
 testset.Sex = testset.Sex.map({'female':0, 'male':1}).astype('int')
 testset.Sex.unique()
 
-
-### Calculate missing values for Age (use Standard deviation) ###
-import random as rd
-
-# fill missing value in Age for Master
-age_Master = testset[testset['Title'] =='Master'].Age.copy()
-age_Master_missing = testset[testset['Age'].isnull()].copy()
-age_Master_missing = age_Master_missing[age_Master_missing['Title']=='Master'].Age
-age_Master = age_Master.dropna(how='all')
-assert not age_Master.isnull().any()
-
-age_Master_mean = age_Master.describe()['mean'] 
-age_Master_std = age_Master.describe()['std']   
-age_min = age_Master_mean - age_Master_std
-age_max = age_Master_mean + age_Master_std
-
-for i,val in age_Master_missing.iteritems():
-    age_Master_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Master_missing.keys().tolist()
-
-for i, val in age_Master_missing.iteritems():
-    testset.loc[i, 'Age'] = val
-
-
-# fill missing value in Age for Mr
-age_Mr = testset[testset['Title'] == 'Mr'].Age.copy()
-age_Mr_missing = testset[testset['Age'].isnull()].copy()
-age_Mr_missing = age_Mr_missing[age_Mr_missing['Title'] == 'Mr'].Age
-age_Mr = age_Mr.dropna(how='all')
-assert not age_Mr.isnull().any()
-
-age_Mr_mean = age_Mr.describe()['mean'] 
-age_Mr_std = age_Mr.describe()['std']   
-age_min = age_Mr_mean - age_Mr_std
-age_max = age_Mr_mean + age_Mr_std
-
-for i,val in age_Mr_missing.iteritems():
-    age_Mr_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Mr_missing.keys().tolist()
-
-for i, val in age_Mr_missing.iteritems():
-    testset.loc[i, 'Age'] = val
-
-# fill missing value in Age for Mrs
-age_Mrs = testset[testset['Title'] == 'Mrs'].Age.copy()
-age_Mrs_missing = testset[testset['Age'].isnull()].copy()
-age_Mrs_missing = age_Mrs_missing[age_Mrs_missing['Title'] == 'Mrs'].Age
-age_Mrs = age_Mrs.dropna(how='all')
-assert not age_Mrs.isnull().any()
-
-age_Mrs_mean = age_Mrs.describe()['mean'] 
-age_Mrs_std = age_Mrs.describe()['std']   
-age_min = age_Mrs_mean - age_Mrs_std
-age_max = age_Mrs_mean + age_Mrs_std
-
-for i,val in age_Mrs_missing.iteritems():
-    age_Mrs_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Mrs_missing.keys().tolist()
-
-for i, val in age_Mrs_missing.iteritems():
-    testset.loc[i, 'Age'] = val
-
-# fill missing value in Age for Ms
-age_Ms = testset[testset['Title'] == 'Ms'].Age.copy()
-age_Ms_missing = testset[testset['Age'].isnull()].copy()
-age_Ms_missing = age_Ms_missing[age_Ms_missing['Title'] == 'Ms'].Age
-age_Ms = age_Ms.dropna(how='all')
-assert not age_Ms.isnull().any()
-
-age_Ms_mean = age_Ms.describe()['mean'] 
-age_Ms_std = age_Ms.describe()['std']   
-age_min = age_Ms_mean - age_Ms_std
-age_max = age_Ms_mean + age_Ms_std
-
-for i,val in age_Ms_missing.iteritems():
-    age_Ms_missing[i] = int(rd.uniform(age_min, age_max+1))
-
-missing_index = age_Ms_missing.keys().tolist()
-
-for i, val in age_Ms_missing.iteritems():
-    testset.loc[i, 'Age'] = val
-
-### Change Title to Categorical Data ###
-# Title vs Survived ratio
-# Mrs: 79.7     --> 3
-# Ms: 70.3      --> 2
-# Master: 57.5  --> 1
-# Mr: 16.2      --> 0
-
 # Ordinal Data based on Survival ratio
 testset.Title = testset.Title.map({'Mrs':3, 'Ms':2, 'Master':1, 'Mr':0}).astype('int')
 
@@ -387,6 +234,31 @@ testset['Ms'] = onehot_encoded[:,3]
 testset['Master'] = onehot_encoded[:,0]
 testset.drop('Title', axis = 1, inplace = True)
 '''
+
+### Calculate missing values for Age (use Standard deviation) ###
+import random as rd
+each_mean = np.arange(4)
+each_std = np.arange(4)
+# mean calculations
+for i in range(4):
+    age_each = testset[testset['Title'] == i].Age.copy()
+    age_each_mean = age_each[age_each.notnull()].describe()['mean']
+    age_each_std = age_each[age_each.notnull()].describe()['std']
+                        
+    for j, val in age_each.isnull().iteritems():
+        if val == True:
+            testset.loc[j, 'Age'] = rd.uniform(age_each_mean-age_each_std, age_each_mean+age_each_std+1)
+    
+        
+
+### Change Title to Categorical Data ###
+# Title vs Survived ratio
+# Mrs: 79.7     --> 3
+# Ms: 70.3      --> 2
+# Master: 57.5  --> 1
+# Mr: 16.2      --> 0
+
+
 
 ### Change Embarked to Categorical Data ###
 # Embarked vs Survived ratio
@@ -427,8 +299,8 @@ testset.to_csv('final_test.csv')
 '''
 Train set and Test set
 '''
-testset.drop('Fare', axis=1, inplace=True)
-dataset.drop('Fare', axis=1, inplace=True)
+#testset.drop('Fare', axis=1, inplace=True)
+#dataset.drop('Fare', axis=1, inplace=True)
 
 '''
 Machine learning models
@@ -437,7 +309,7 @@ y_train = dataset.Survived
 x_train = dataset.drop(['Survived', 'PassengerId'], axis=1)
 x_test = testset.drop('PassengerId', axis=1)
 
-x_test.fillna(0, inplace=True)
+x_test.isnull().sum()
 
 # FEATURE SCALING
 from sklearn.preprocessing import StandardScaler
@@ -452,12 +324,13 @@ logistic.fit(x_train, y_train)
 y_pred = logistic.predict(x_test)
 acc_log = round(logistic.score(x_train, y_train) * 100,2)
 
-'''
-corr = pd.DataFrame(x_train.columns.delete(0))
-corr.columns = ['Feature']
-corr['Correlations'] = pd.Series(logistic.coef_[0])
-corr.sort_values(by='Correlations', ascending=False)
-'''
+train_df = dataset.drop('Survived', axis=1).copy()
+coeff_df = pd.DataFrame(train_df.columns.delete(0))
+coeff_df.columns = ['Feature']
+coeff_df["Correlation"] = pd.Series(logistic.coef_[0])
+coeff_df.sort_values(by='Correlation', ascending=False)
+
+
 ### Decision Tree ###
 from sklearn.tree import DecisionTreeClassifier
 classifier = DecisionTreeClassifier(criterion = 'entropy', random_state=0)
@@ -465,18 +338,26 @@ classifier.fit(x_train, y_train)
 y_pred = classifier.predict(x_test)
 acc_dec = round(classifier.score(x_train, y_train) *100, 2)
 
-acc_dec
-acc_log
-
 ### K-NN ###
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier(n_neighbors = 3)
+knn.fit(x_train, y_train)
+y_pred = knn.predict(x_test)
+acc_knn = round(knn.score(x_train, y_train) *100, 2)
 
 ### Support Vector Machine ###
-
-### Kernel SVM ###
-
-### Naive Bayes ###
+from sklearn.svm import SVC
+svc = SVC()
+svc.fit(x_train, y_train)
+y_pred = svc.predict(x_test)
+acc_svc = round(svc.score(x_train, y_train)*100, 2)
 
 ### Random Forest ###
+from sklearn.ensemble import RandomForestClassifier
+random_forest = RandomForestClassifier(n_estimators=100)
+random_forest.fit(x_train, y_train)
+y_pred = random_forest.predict(x_test)
+acc_random_forest = round(random_forest.score(x_train, y_train) *100, 2)
 
 
 submission = pd.DataFrame({
@@ -484,8 +365,6 @@ submission = pd.DataFrame({
                            'Survived': y_pred
                            })
 submission.to_csv('submission.csv', index=False)
-
-
 
 
 
