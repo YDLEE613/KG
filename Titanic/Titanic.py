@@ -1,4 +1,8 @@
+"""
+Created on Tue Feb 19 19:48:06 2019
 
+@author: donny
+"""
 
 
 ### import libraries
@@ -64,7 +68,7 @@ plt.xticks(ind+width/2, ('Master', 'Mr', 'Mrs', 'Ms'))
 plt.yticks(np.arange(0, 600, 50))
 plt.legend(loc='upper right')
 plt.show()
-'''
+
 
 title_surv = dataset[dataset['Survived'] == 1].groupby('Title')['Survived'].count()
 total_title = dataset.Title.value_counts()
@@ -72,6 +76,7 @@ print('Survival rate for Mr: ' , round(title_surv['Mr']/total_title['Mr'] *100,1
 print('Survival rate for Ms: ' , round(title_surv['Ms']/total_title['Ms'] *100,1),'%')
 print('Survival rate for Mrs: ' , round(title_surv['Mrs']/total_title['Mrs'] *100,1),'%')
 print('Survival rate for Master: ' , round(title_surv['Master']/total_title['Master'] *100,1),'%')
+'''
 
 # Mrs: 79.7     --> 3
 # Ms: 70.3      --> 2
@@ -80,26 +85,6 @@ print('Survival rate for Master: ' , round(title_surv['Master']/total_title['Mas
 
 # Ordinal Data based on Survival ratio
 dataset.Title = dataset.Title.map({'Mrs':3, 'Ms':2, 'Master':1, 'Mr':0}).astype('int')
-
-
-### Calculate missing values for Age (use Standard deviation) ###
-import random as rd
-each_mean = np.arange(4)
-each_std = np.arange(4)
-# mean calculations
-for i in range(4):
-    age_each = dataset[dataset['Title'] == i].Age.copy()
-    age_each_mean = age_each[age_each.notnull()].describe()['mean']
-    age_each_std = age_each[age_each.notnull()].describe()['std']
-                        
-    for j, val in age_each.isnull().iteritems():
-        if val == True:
-            dataset.loc[j, 'Age'] = rd.uniform(age_each_mean-age_each_std, age_each_mean+age_each_std+1)
-    
-        
-
-
-    
 
 
 '''
@@ -116,6 +101,26 @@ dataset['Ms'] = onehot_encoded[:,3]
 dataset['Master'] = onehot_encoded[:,0]
 dataset.drop('Title', axis = 1, inplace = True)
 '''
+
+### Calculate missing values for Age (use Standard deviation) ###
+import random as rd
+each_mean = np.arange(4)
+each_std = np.arange(4)
+# mean calculations
+for i in range(4):
+    age_each = dataset[dataset['Title'] == i].Age.copy()
+    age_each_mean = age_each[age_each.notnull()].describe()['mean']
+    age_each_std = age_each[age_each.notnull()].describe()['std']
+                        
+    for j, val in age_each.isnull().iteritems():
+        if val == True:
+            dataset.loc[j, 'Age'] = rd.uniform(age_each_mean-age_each_std, age_each_mean+age_each_std+1)
+    
+
+
+dataset.drop('Fare', axis=1, inplace=True)
+dataset.drop('Ticket', axis=1, inplace=True)
+    
 
 
 ### Change Embarked to Categorical Data ###
@@ -162,21 +167,6 @@ dataset['Embark_S'] = onehot_encoded[:,2]
 dataset.drop('Embarked', axis=1, inplace=True)
 '''
 
-### Calculate the fare per person ###
-ticket_counts = dataset.Ticket.value_counts()
-num_ticket = pd.Series([-1] *len(dataset.Ticket))
-
-for i, val in dataset.Ticket.iteritems():
-    num_ticket[i] = ticket_counts[val]
-
-dataset['Num_Ticket'] = num_ticket # number of same tickets
-dataset['Fare_pp'] = dataset['Fare']/dataset['Num_Ticket']
-dataset.drop('Ticket', axis=1,inplace=True)
-dataset.drop('Num_Ticket', axis=1,inplace=True)
-
-#dataset.to_csv('final_data.csv')
-
-
 '''
 
 TEST SET 
@@ -217,6 +207,15 @@ testset['Title'] = np.select(conditions, choices, default = 'Mr')
 testset.Sex = testset.Sex.map({'female':0, 'male':1}).astype('int')
 testset.Sex.unique()
 
+
+
+### Change Title to Categorical Data ###
+# Title vs Survived ratio
+# Mrs: 79.7     --> 3
+# Ms: 70.3      --> 2
+# Master: 57.5  --> 1
+# Mr: 16.2      --> 0
+
 # Ordinal Data based on Survival ratio
 testset.Title = testset.Title.map({'Mrs':3, 'Ms':2, 'Master':1, 'Mr':0}).astype('int')
 
@@ -251,13 +250,6 @@ for i in range(4):
     
         
 
-### Change Title to Categorical Data ###
-# Title vs Survived ratio
-# Mrs: 79.7     --> 3
-# Ms: 70.3      --> 2
-# Master: 57.5  --> 1
-# Mr: 16.2      --> 0
-
 
 
 ### Change Embarked to Categorical Data ###
@@ -280,36 +272,17 @@ testset['Embark_S'] = onehot_encoded[:,2]
 testset.drop('Embarked', axis=1, inplace=True)
 '''
 
-### Calculate the fare per person ###
-ticket_counts = testset.Ticket.value_counts()
-num_ticket = pd.Series([-1] *len(testset.Ticket))
+testset.drop('Fare', axis=1, inplace=True)
+testset.drop('Ticket', axis=1, inplace=True)
 
-for i, val in testset.Ticket.iteritems():
-    num_ticket[i] = ticket_counts[val]
-    if testset.Fare[i] == None:
-        num_ticket[i] = 0
-
-testset['Num_Ticket'] = num_ticket # number of same tickets
-testset['Fare_pp'] = testset['Fare']/testset['Num_Ticket']
-testset.drop('Ticket', axis=1,inplace=True)
-testset.drop('Num_Ticket', axis=1,inplace=True)
-test_pass = testset.PassengerId
-testset.to_csv('final_test.csv')
-
-'''
-Train set and Test set
-'''
-#testset.drop('Fare', axis=1, inplace=True)
-#dataset.drop('Fare', axis=1, inplace=True)
 
 '''
 Machine learning models
 '''
 y_train = dataset.Survived
+test_pass = testset.PassengerId
 x_train = dataset.drop(['Survived', 'PassengerId'], axis=1)
 x_test = testset.drop('PassengerId', axis=1)
-
-x_test.isnull().sum()
 
 # FEATURE SCALING
 from sklearn.preprocessing import StandardScaler
@@ -323,13 +296,6 @@ logistic = LogisticRegression(random_state=0)
 logistic.fit(x_train, y_train)
 y_pred = logistic.predict(x_test)
 acc_log = round(logistic.score(x_train, y_train) * 100,2)
-
-train_df = dataset.drop('Survived', axis=1).copy()
-coeff_df = pd.DataFrame(train_df.columns.delete(0))
-coeff_df.columns = ['Feature']
-coeff_df["Correlation"] = pd.Series(logistic.coef_[0])
-coeff_df.sort_values(by='Correlation', ascending=False)
-
 
 ### Decision Tree ###
 from sklearn.tree import DecisionTreeClassifier
@@ -358,6 +324,17 @@ random_forest = RandomForestClassifier(n_estimators=100)
 random_forest.fit(x_train, y_train)
 y_pred = random_forest.predict(x_test)
 acc_random_forest = round(random_forest.score(x_train, y_train) *100, 2)
+
+### XGBoost ###
+from xgboost import XGBClassifier
+xgb = XGBClassifier()
+xgb.fit(x_train, y_train)
+y_pred = xgb.predict(x_test)
+acc_xgb = round(random_forest.score(x_train, y_train) *100, 2)
+
+acc = [acc_log, acc_dec, acc_knn, acc_svc, acc_random_forest, acc_xgb]
+index = ['Logistic','Decision Tree', 'K-NN', 'SVM', 'Random Forest', 'XGB']       
+df = pd.DataFrame(acc, columns=['acc'], index = index).sort_values(by='acc', ascending=False)
 
 
 submission = pd.DataFrame({
