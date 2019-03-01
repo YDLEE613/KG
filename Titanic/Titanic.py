@@ -1,10 +1,3 @@
-"""
-Created on Tue Feb 19 19:48:06 2019
-
-@author: donny
-"""
-
-
 ### import libraries
 import pandas as pd # manage dataset
 import numpy as np
@@ -27,14 +20,25 @@ dataset['Title'] = titles[1].str.strip()
 true_names = dataset['Name']
 dataset.drop('Name', axis=1, inplace = True)
 
-### Change Title to Mr, Mrs, Master or Ms
+### Change Title to Mr, Mrs, Master or Miss
 #dataset.Title.value_counts()
-conditions = [(dataset['Title'] == 'the Countess') | (dataset['Title'] == 'Mme') | (dataset['Title'] == 'Mrs') 
-                | (dataset['Title'] == 'Lday') | (dataset['Title'] == 'Dr') & (dataset['Sex'] == 'female'),
-               (dataset['Title'] == 'Mlle') | (dataset['Title'] == 'Ms') | (dataset['Title'] == 'Miss'),
-               (dataset['Title'] == 'Master')]
-choices = ['Mrs', 'Ms', 'Master']
-dataset['Title'] = np.select(conditions, choices, default = 'Mr')
+
+dataset['Title'].value_counts()
+
+conditions = [(dataset['Title'] == 'Dr') | (dataset['Title'] == 'Rev') | (dataset['Title'] == 'Mlle') 
+                | (dataset['Title'] == 'Major') | (dataset['Title'] == 'Col') | (dataset['Title'] == 'Ms')
+                | (dataset['Title'] == 'the Countess') | (dataset['Title'] == 'Sir') | (dataset['Title'] == 'Lady')
+                | (dataset['Title'] == 'Jonkheer') | (dataset['Title'] == 'Don') | (dataset['Title'] == 'Capt')
+                | (dataset['Title'] == 'Mme'),
+                (dataset['Title'] == 'Mr'),
+                (dataset['Title'] == 'Miss'),
+                (dataset['Title'] == 'Master')] 
+               
+choices = ['Misc', 'Mr', 'Miss', 'Master']
+dataset['Title'] = np.select(conditions, choices, default='Mrs')
+
+dataset['Title'].value_counts()
+
 
 
 ### Change Sex to number (female:0, male:1) ###
@@ -45,67 +49,28 @@ dataset.Sex.unique()
 
 ### Change Title to Categorical Data ###
 # Title vs Survived ratio
-'''
-import matplotlib.pyplot as plt
-
-color_survived = '#57e8fc'
-color_dead = '#fc5e57'
-counts = dataset.Survived.value_counts()
-sizes = [counts[0],counts[1]] # dead, survived
-colors = [color_dead, color_survived]
-
-ct = pd.crosstab(dataset.Title, dataset.Survived)
-survived_vals = [ct[1][0], ct[1][1], ct[1][2], ct[1][3]]
-dead_vals = [ct[0][0], ct[0][1], ct[0][2], ct[0][3]]
-
-width = 0.3
-ind = np.arange(4)
-
-plt.bar(ind, survived_vals, width, label = 'Survived', color = color_survived)
-plt.bar(ind+width, dead_vals, width, label = 'Dead', color = color_dead)
-
-plt.xticks(ind+width/2, ('Master', 'Mr', 'Mrs', 'Ms'))
-plt.yticks(np.arange(0, 600, 50))
-plt.legend(loc='upper right')
-plt.show()
-
 
 title_surv = dataset[dataset['Survived'] == 1].groupby('Title')['Survived'].count()
 total_title = dataset.Title.value_counts()
 print('Survival rate for Mr: ' , round(title_surv['Mr']/total_title['Mr'] *100,1),'%')
-print('Survival rate for Ms: ' , round(title_surv['Ms']/total_title['Ms'] *100,1),'%')
+print('Survival rate for Miss: ' , round(title_surv['Miss']/total_title['Miss'] *100,1),'%')
 print('Survival rate for Mrs: ' , round(title_surv['Mrs']/total_title['Mrs'] *100,1),'%')
 print('Survival rate for Master: ' , round(title_surv['Master']/total_title['Master'] *100,1),'%')
-'''
 
 # Mrs: 79.7     --> 3
-# Ms: 70.3      --> 2
+# Miss: 70.3      --> 2
 # Master: 57.5  --> 1
 # Mr: 16.2      --> 0
 
 # Ordinal Data based on Survival ratio
-dataset.Title = dataset.Title.map({'Mrs':3, 'Ms':2, 'Master':1, 'Mr':0}).astype('int')
+dataset.Title = dataset.Title.map({'Misc':4,'Mrs':3, 'Miss':2, 'Master':1, 'Mr':0}).astype('int')
 
-
-'''
-# OHE data
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-label_encoder = LabelEncoder()
-integer_encoded = label_encoder.fit_transform(dataset.Title)
-integer_encoded = integer_encoded.reshape(len(integer_encoded),1)
-onehotEncoder = OneHotEncoder()
-onehot_encoded = onehotEncoder.fit_transform(integer_encoded).toarray()
-dataset['Mr'] = onehot_encoded[:,1]
-dataset['Mrs'] = onehot_encoded[:,2]
-dataset['Ms'] = onehot_encoded[:,3]
-dataset['Master'] = onehot_encoded[:,0]
-dataset.drop('Title', axis = 1, inplace = True)
-'''
 
 ### Calculate missing values for Age (use Standard deviation) ###
 import random as rd
 each_mean = np.arange(4)
 each_std = np.arange(4)
+
 # mean calculations
 for i in range(4):
     age_each = dataset[dataset['Title'] == i].Age.copy()
@@ -116,36 +81,30 @@ for i in range(4):
         if val == True:
             dataset.loc[j, 'Age'] = rd.uniform(age_each_mean-age_each_std, age_each_mean+age_each_std+1)
     
+dataset['AgeBand'] = pd.cut(dataset['Age'],5)        
+dataset[['AgeBand', 'Survived']].groupby(['AgeBand'], as_index = False).mean().sort_values(by='AgeBand', ascending=True)
 
+age = dataset.Age.copy()
+for i, val in age.iteritems():
+    if val <= 16:
+        dataset.loc[i, 'Age'] = 0
+    elif val > 16 and val <= 32:
+        dataset.loc[i, 'Age'] = 1
+    elif val > 32 and val <= 48:
+        dataset.loc[i, 'Age'] = 2
+    elif val > 48 and val <= 64:
+        dataset.loc[i, 'Age'] = 3
+    else:
+        dataset.loc[i, 'Age'] = 4
 
-dataset.drop('Fare', axis=1, inplace=True)
-dataset.drop('Ticket', axis=1, inplace=True)
+dataset.drop(['AgeBand', 'Fare', 'Ticket'], axis=1, inplace=True)
     
+
+
 
 
 ### Change Embarked to Categorical Data ###
 # Embarked vs Survived ratio
-'''
-ct = pd.crosstab(dataset.Embarked, dataset.Survived)
-survival_vals = ct[1]
-dead_vals = ct[0]
-ind = np.arange(3)
-
-plt.bar(ind, survival_vals, width, label='Survived', color = color_survived)
-plt.bar(ind+width, dead_vals, width, label='dead', color = color_dead)
-
-plt.xticks(ind+width/2, ('C', 'Q,', 'S'))
-plt.yticks(np.arange(0, 600, 50))
-plt.legend(loc='upper right')
-plt.show()
-'''
-'''
-embark_surv = dataset[dataset['Survived'] == 1].groupby('Embarked')['Survived'].count()
-total_embark = dataset.Embarked.value_counts()
-print('Survival rate for S: ', round(embark_surv['S']/total_embark['S']*100, 1), '%')
-print('Survival rate for Q: ', round(embark_surv['Q']/total_embark['Q']*100, 1), '%')
-print('Survival rate for C: ', round(embark_surv['C']/total_embark['C']*100, 1), '%')
-'''
 # S: 33.9 --> 0
 # Q: 39.0 --> 1
 # C: 55.4 --> 2
@@ -153,19 +112,17 @@ print('Survival rate for C: ', round(embark_surv['C']/total_embark['C']*100, 1),
 # Ordinal data
 dataset.Embarked = dataset.Embarked.map({'C':2, 'Q':1, 'S':0}).astype('int')
 
-'''
-# OHE data
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-label_encoder = LabelEncoder()
-integer_encoded = label_encoder.fit_transform(dataset.Embarked)
-integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
-onehotEncoder = OneHotEncoder()
-onehot_encoded = onehotEncoder.fit_transform(integer_encoded).toarray()
-dataset['Embark_C'] = onehot_encoded[:,0]
-dataset['Embark_Q'] = onehot_encoded[:,1]
-dataset['Embark_S'] = onehot_encoded[:,2]
-dataset.drop('Embarked', axis=1, inplace=True)
-'''
+
+
+### Add SibSp + Parch to check if the passenger was alone ###
+dataset['Alone'] = dataset['Parch'] + dataset['SibSp']
+
+conditions = [dataset['Alone'] == 0]
+choices = [1]
+dataset['Alone'] = np.select(conditions, choices, default = 0)
+dataset.drop(['SibSp','Parch'], axis=1, inplace=True)
+
+
 
 '''
 
@@ -193,15 +150,19 @@ testset['Title'] = titles[1].str.strip()
 true_names = testset['Name']
 testset.drop('Name', axis=1, inplace = True)
 
-### Change Title to Mr, Mrs, Master or Ms
-#testset.Title.value_counts()
-conditions = [(testset['Title'] == 'the Countess') | (testset['Title'] == 'Mme') | (testset['Title'] == 'Mrs') 
-                | (testset['Title'] == 'Lday') | (testset['Title'] == 'Dr') & (testset['Sex'] == 'female'),
-               (testset['Title'] == 'Mlle') | (testset['Title'] == 'Ms') | (testset['Title'] == 'Miss'),
-               (testset['Title'] == 'Master')]
-choices = ['Mrs', 'Ms', 'Master']
-testset['Title'] = np.select(conditions, choices, default = 'Mr')
+### Change Title to Mr, Mrs, Master or Miss
 
+conditions = [(testset['Title'] == 'Dr') | (testset['Title'] == 'Rev') | (testset['Title'] == 'Mlle') 
+                | (testset['Title'] == 'Major') | (testset['Title'] == 'Col') | (testset['Title'] == 'Ms')
+                | (testset['Title'] == 'the Countess') | (testset['Title'] == 'Sir') | (testset['Title'] == 'Lady')
+                | (testset['Title'] == 'Jonkheer') | (testset['Title'] == 'Don') | (testset['Title'] == 'Capt')
+                | (testset['Title'] == 'Mme'),
+                (testset['Title'] == 'Mr'),
+                (testset['Title'] == 'Miss'),
+                (testset['Title'] == 'Master')] 
+               
+choices = ['Misc', 'Mr', 'Miss', 'Master']
+testset['Title'] = np.select(conditions, choices, default='Mrs')
 
 ### Change Sex to number (female:0, male:1) ###
 testset.Sex = testset.Sex.map({'female':0, 'male':1}).astype('int')
@@ -212,32 +173,18 @@ testset.Sex.unique()
 ### Change Title to Categorical Data ###
 # Title vs Survived ratio
 # Mrs: 79.7     --> 3
-# Ms: 70.3      --> 2
+# Miss: 70.3      --> 2
 # Master: 57.5  --> 1
 # Mr: 16.2      --> 0
 
 # Ordinal Data based on Survival ratio
-testset.Title = testset.Title.map({'Mrs':3, 'Ms':2, 'Master':1, 'Mr':0}).astype('int')
-
-'''
-# OHE data
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-label_encoder = LabelEncoder()
-integer_encoded = label_encoder.fit_transform(testset.Title)
-integer_encoded = integer_encoded.reshape(len(integer_encoded),1)
-onehotEncoder = OneHotEncoder()
-onehot_encoded = onehotEncoder.fit_transform(integer_encoded).toarray()
-testset['Mr'] = onehot_encoded[:,1]
-testset['Mrs'] = onehot_encoded[:,2]
-testset['Ms'] = onehot_encoded[:,3]
-testset['Master'] = onehot_encoded[:,0]
-testset.drop('Title', axis = 1, inplace = True)
-'''
+testset.Title = testset.Title.map({'Misc':4,'Mrs':3, 'Miss':2, 'Master':1, 'Mr':0}).astype('int')
 
 ### Calculate missing values for Age (use Standard deviation) ###
 import random as rd
 each_mean = np.arange(4)
 each_std = np.arange(4)
+
 # mean calculations
 for i in range(4):
     age_each = testset[testset['Title'] == i].Age.copy()
@@ -248,7 +195,19 @@ for i in range(4):
         if val == True:
             testset.loc[j, 'Age'] = rd.uniform(age_each_mean-age_each_std, age_each_mean+age_each_std+1)
     
-        
+
+age = testset.Age.copy()
+for i, val in age.iteritems():
+    if val <= 16:
+        testset.loc[i, 'Age'] = 0
+    elif val > 16 and val <= 32:
+        testset.loc[i, 'Age'] = 1
+    elif val > 32 and val <= 48:
+        testset.loc[i, 'Age'] = 2
+    elif val > 48 and val <= 64:
+        testset.loc[i, 'Age'] = 3
+    else:
+        testset.loc[i, 'Age'] = 4
 
 
 
@@ -258,23 +217,17 @@ for i in range(4):
 # Ordinal data
 testset.Embarked = testset.Embarked.map({'C':2, 'Q':1, 'S':0}).astype('int')
 
-'''
-# OHE data
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-label_encoder = LabelEncoder()
-integer_encoded = label_encoder.fit_transform(testset.Embarked)
-integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
-onehotEncoder = OneHotEncoder()
-onehot_encoded = onehotEncoder.fit_transform(integer_encoded).toarray()
-testset['Embark_C'] = onehot_encoded[:,0]
-testset['Embark_Q'] = onehot_encoded[:,1]
-testset['Embark_S'] = onehot_encoded[:,2]
-testset.drop('Embarked', axis=1, inplace=True)
-'''
+testset.drop(['Fare','Ticket'], axis=1, inplace=True)
 
-testset.drop('Fare', axis=1, inplace=True)
-testset.drop('Ticket', axis=1, inplace=True)
 
+
+### Add SibSp + Parch to check if the passenger was alone ###
+testset['Alone'] = testset['Parch'] + testset['SibSp']
+
+conditions = [testset['Alone'] == 0]
+choices = [1]
+testset['Alone'] = np.select(conditions, choices, default = 0)
+testset.drop(['SibSp','Parch'], axis=1, inplace=True)
 
 '''
 Machine learning models
@@ -283,6 +236,7 @@ y_train = dataset.Survived
 test_pass = testset.PassengerId
 x_train = dataset.drop(['Survived', 'PassengerId'], axis=1)
 x_test = testset.drop('PassengerId', axis=1)
+
 
 # FEATURE SCALING
 from sklearn.preprocessing import StandardScaler
@@ -296,6 +250,7 @@ logistic = LogisticRegression(random_state=0)
 logistic.fit(x_train, y_train)
 y_pred = logistic.predict(x_test)
 acc_log = round(logistic.score(x_train, y_train) * 100,2)
+
 
 ### Decision Tree ###
 from sklearn.tree import DecisionTreeClassifier
@@ -332,9 +287,6 @@ xgb.fit(x_train, y_train)
 y_pred = xgb.predict(x_test)
 acc_xgb = round(random_forest.score(x_train, y_train) *100, 2)
 
-acc = [acc_log, acc_dec, acc_knn, acc_svc, acc_random_forest, acc_xgb]
-index = ['Logistic','Decision Tree', 'K-NN', 'SVM', 'Random Forest', 'XGB']       
-df = pd.DataFrame(acc, columns=['acc'], index = index).sort_values(by='acc', ascending=False)
 
 
 submission = pd.DataFrame({
