@@ -285,7 +285,7 @@ from xgboost import XGBClassifier
 xgb = XGBClassifier()
 xgb.fit(x_train, y_train)
 y_pred = xgb.predict(x_test)
-acc_xgb = round(random_forest.score(x_train, y_train) *100, 2)
+acc_xgb = round(xgb.score(x_train, y_train) *100, 2)
 
 
 
