@@ -46,14 +46,7 @@ Only consider columns with quality rating
 # Fence   -> 1179 null values 
 
 # GrLivArea    -> total area
-
-Number of rooms
-# BsmtFullBath
-# BsmtHalfBath
-# FullBath
-# HalfBath
-# Bedroom
-# Kitchen
+# TotRmsAbvGrd
 
 '''
 
@@ -167,20 +160,32 @@ livBand = dataset.GrLivArea.copy()
 
 for i, val in livBand.iteritems():
     if val <= 1395.6:
-        dataset.loc[i, 'LivAreaBand'] = 0
+        dataset.loc[i, 'GrLivArea'] = 0
     elif val > 1395.6 and val <= 2457.2:
-        dataset.loc[i, 'LivAreaBand'] = 1
+        dataset.loc[i, 'GrLivArea'] = 1
     elif val > 2457.2 and val <= 3518.8:
-        dataset.loc[i, 'LivAreaBand'] = 2
+        dataset.loc[i, 'GrLivArea'] = 2
     elif val > 3518.8 and val <= 4580.4:
-        dataset.loc[i, 'LivAreaBand'] = 3
+        dataset.loc[i, 'GrLivArea'] = 3
     else:
-        dataset.loc[i, 'LivAreaBand'] = 4
+        dataset.loc[i, 'GrLivArea'] = 4
 
-### Consider number of bath (both basement and ground), bed (ground) and kitchen ###
+dataset.drop('LivAreaBand', axis=1, inplace=True)
 
+# Test set
+livBand = testset.GrLivArea.copy()
+for i, val in livBand.iteritems():
+    if val <= 1395.6:
+        testset.loc[i, 'GrLivArea'] = 0
+    elif val > 1395.6 and val <= 2457.2:
+        testset.loc[i, 'GrLivArea'] = 1
+    elif val > 2457.2 and val <= 3518.8:
+        testset.loc[i, 'GrLivArea'] = 2
+    elif val > 3518.8 and val <= 4580.4:
+        testset.loc[i, 'GrLivArea'] = 3
+    else:
+        testset.loc[i, 'GrLivArea'] = 4
 
-                     
 
 '''
 
