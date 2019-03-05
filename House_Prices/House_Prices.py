@@ -10,9 +10,8 @@ train_set.isnull().sum()
 
 test_set.shape
 test_set.isnull().sum()
+
 types = train_set.dtypes.copy()
-
-
 types_null = pd.DataFrame(train_set.isnull().sum(), index = types.index)
 
 '''
@@ -45,110 +44,143 @@ Only consider columns with quality rating
 # GarageCond -> 81 null values
 # PoolQC  -> 1453 null values
 # Fence   -> 1179 null values 
+
+# GrLivArea    -> total area
+
+Number of rooms
+# BsmtFullBath
+# BsmtHalfBath
+# FullBath
+# HalfBath
+# Bedroom
+# Kitchen
+
 '''
 
 ### Extract columns that are needed ###
 dataset = train_set[['OverallQual', 'OverallCond','ExterQual','ExterCond','HeatingQC','KitchenQual',
                      'MiscVal','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1','BsmtFinType2',
-                     'FireplaceQu','GarageQual','GarageCond','PoolQC','Fence']]
+                     'FireplaceQu','GarageQual','GarageCond','PoolQC','Fence', 'GrLivArea', 'TotRmsAbvGrd']]
                      
                      
 ### Extract columns that are needed ###
 testset = test_set[['OverallQual', 'OverallCond','ExterQual','ExterCond','HeatingQC','KitchenQual',
                      'MiscVal','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1','BsmtFinType2',
-                     'FireplaceQu','GarageQual','GarageCond','PoolQC','Fence']]
-
-
-### Fill null values with 'none' and change to ordinal data ###
-dataset.BsmtQual = dataset.BsmtQual.fillna(value='none')
-dataset.BsmtCond = dataset.BsmtCond.fillna(value='none')
-dataset.BsmtExposure = dataset.BsmtExposure.fillna(value='none')
-dataset.BsmtFinType1 = dataset.BsmtFinType1.fillna(value='none')
-dataset.BsmtFinType2 = dataset.BsmtFinType2.fillna(value='none')
-dataset.GarageQual = dataset.GarageQual.fillna(value='none')
-dataset.GarageCond = dataset.GarageCond.fillna(value='none')
-dataset.FireplaceQu = dataset.FireplaceQu.fillna(value='none')
-dataset.PoolQC = dataset.PoolQC.fillna(value='none')
-dataset.Fence = dataset.Fence.fillna(value='none')
-
-### Map quality to ordinal data ###
-dataset.ExterQual = dataset.ExterQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0}).astype('int')
-dataset.ExterCond = dataset.ExterCond.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0}).astype('int')
-dataset.HeatingQC = dataset.HeatingQC.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0}).astype('int')
-dataset.KitchenQual = dataset.KitchenQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0}).astype('int')
-
-### Map quality to ordinal data ###
-dataset.BsmtQual = dataset.BsmtQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
-dataset.BsmtCond = dataset.BsmtCond.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
-dataset.BsmtExposure = dataset.BsmtExposure.map({'Gd':3, 'Av':2, 'Mn':1, 'No':0, 'none':0}).astype('int')
-dataset.BsmtFinType1 = dataset.BsmtFinType1.map({'GLQ':5, 'ALQ':4, 'BLQ':3, 'Rec':2, 'LwQ':1, 'Unf':0, 'none':0}).astype('int')
-dataset.BsmtFinType2 = dataset.BsmtFinType2.map({'GLQ':5, 'ALQ':4, 'BLQ':3, 'Rec':2, 'LwQ':1, 'Unf':0, 'none':0}).astype('int')
-dataset.GarageQual = dataset.GarageQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
-dataset.GarageCond = dataset.GarageCond.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
-
-
-
-dataset.FireplaceQu = dataset.FireplaceQu.map({'Ex':5, 'Gd':4, 'TA':3, 'Fa':2, 'Po':1, 'none':0}).astype('int')
-dataset.PoolQC = dataset.PoolQC.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'none':0}).astype('int')
-dataset.Fence = dataset.Fence.map({'GdPrv':2, 'MnPrv':1, 'GdWo':2, 'MnWw':1, 'none':0}).astype('int')
+                     'FireplaceQu','GarageQual','GarageCond','PoolQC','Fence', 'GrLivArea', 'TotRmsAbvGrd']]
 
 dataset.isnull().sum()
-
-
-### Comine Overal Qual and Cond ? ###
-
-
-
-
-'''
-
-TEST SET
-
-'''
-                     
 testset.isnull().sum()
 
 ### Fill null values with 'none' and change to ordinal data ###
-testset.KitchenQual = testset.KitchenQual.fillna(value='none')
-testset.BsmtQual = testset.BsmtQual.fillna(value='none')
-testset.BsmtCond = testset.BsmtCond.fillna(value='none')
-testset.BsmtExposure = testset.BsmtExposure.fillna(value='none')
-testset.BsmtFinType1 = testset.BsmtFinType1.fillna(value='none')
-testset.BsmtFinType2 = testset.BsmtFinType2.fillna(value='none')
-testset.GarageQual = testset.GarageQual.fillna(value='none')
-testset.GarageCond = testset.GarageCond.fillna(value='none')
-testset.FireplaceQu = testset.FireplaceQu.fillna(value='none')
-testset.PoolQC = testset.PoolQC.fillna(value='none')
-testset.Fence = testset.Fence.fillna(value='none')
+# Train set
+dataset.BsmtQual.fillna('none', inplace=True) 
+dataset.BsmtCond.fillna('none', inplace=True)
+dataset.BsmtExposure.fillna('none', inplace=True)
+dataset.BsmtFinType1.fillna('none', inplace=True)
+dataset.BsmtFinType2.fillna('none', inplace=True)
+dataset.GarageQual.fillna('none', inplace=True)
+dataset.GarageCond.fillna('none', inplace=True)
+# Test set
+testset.KitchenQual.fillna('none', inplace=True)
+testset.BsmtQual.fillna('none', inplace=True)
+testset.BsmtCond.fillna('none', inplace=True)
+testset.BsmtExposure.fillna('none', inplace=True)
+testset.BsmtFinType1.fillna('none', inplace=True)
+testset.BsmtFinType2.fillna('none', inplace=True)
+testset.GarageQual.fillna('none', inplace=True)
+testset.GarageCond.fillna('none', inplace=True)
 
 ### Map quality to ordinal data ###
-testset.ExterQual = testset.ExterQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0}).astype('int')
-testset.ExterCond = testset.ExterCond.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0}).astype('int')
-testset.HeatingQC = testset.HeatingQC.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0}).astype('int')
-testset.KitchenQual = testset.KitchenQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
+quality = {'Ex':5, 'Gd':4, 'TA':3, 'Av':3, 'Fa':2, 'Po':1, 'Mn':1, 'No':1, 'none':0}
+quality2 = {'GLQ':5, 'ALQ':4, 'BLQ':3, 'Rec':3, 'LwQ':2, 'Unf':1, 'none':0}
+
+# Train set
+dataset.ExterQual = [quality[item] for item in dataset.ExterQual]
+dataset.ExterCond = [quality[item] for item in dataset.ExterCond]
+dataset.HeatingQC = [quality[item] for item in dataset.HeatingQC]
+dataset.KitchenQual = [quality[item] for item in dataset.KitchenQual]
+dataset.BsmtQual = [quality[item] for item in dataset.BsmtQual]
+dataset.BsmtCond = [quality[item] for item in dataset.BsmtCond]
+dataset.BsmtExposure = [quality[item] for item in dataset.BsmtExposure]
+dataset.GarageQual = [quality[item] for item in dataset.GarageQual]
+dataset.GarageCond = [quality[item] for item in dataset.GarageCond]
+dataset.BsmtFinType1 = [quality2[item] for item in dataset.BsmtFinType1]
+dataset.BsmtFinType2 = [quality2[item] for item in dataset.BsmtFinType2]
+# Test set
+testset.ExterQual = [quality[item] for item in testset.ExterQual]
+testset.ExterCond = [quality[item] for item in testset.ExterCond]
+testset.HeatingQC = [quality[item] for item in testset.HeatingQC]
+testset.KitchenQual = [quality[item] for item in testset.KitchenQual]
+testset.BsmtQual = [quality[item] for item in testset.BsmtQual]
+testset.BsmtCond = [quality[item] for item in testset.BsmtCond]
+testset.BsmtExposure = [quality[item] for item in testset.BsmtExposure]
+testset.GarageQual = [quality[item] for item in testset.GarageQual]
+testset.GarageCond = [quality[item] for item in testset.GarageCond]
+testset.BsmtFinType1 = [quality2[item] for item in testset.BsmtFinType1]
+testset.BsmtFinType2 = [quality2[item] for item in testset.BsmtFinType2]
 
 
+### Drop PoolQC, Fence and FireplaceQu due to too many houses without these. ###
+dataset.drop(['PoolQC', 'Fence', 'FireplaceQu'], axis=1, inplace=True)
+testset.drop(['PoolQC', 'Fence', 'FireplaceQu'], axis=1, inplace=True)
 
-### Map quality to ordinal data ###
-testset.BsmtQual = testset.BsmtQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
-testset.BsmtCond = testset.BsmtCond.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
-testset.BsmtExposure = testset.BsmtExposure.map({'Gd':3, 'Av':2, 'Mn':1, 'No':0, 'none':0}).astype('int')
-testset.BsmtFinType1 = testset.BsmtFinType1.map({'GLQ':5, 'ALQ':4, 'BLQ':3, 'Rec':2, 'LwQ':1, 'Unf':0, 'none':0}).astype('int')
-testset.BsmtFinType2 = testset.BsmtFinType2.map({'GLQ':5, 'ALQ':4, 'BLQ':3, 'Rec':2, 'LwQ':1, 'Unf':0, 'none':0}).astype('int')
-testset.GarageQual = testset.GarageQual.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
-testset.GarageCond = testset.GarageCond.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'Po':0, 'none':0}).astype('int')
+### Group MiscVal###
+# Train set
+dataset['MiscValBand'] = pd.cut(dataset['MiscVal'],5)
+miscval = dataset.MiscVal.copy()
+miscval.value_counts
+
+for i, val in miscval.iteritems():
+    if val <= 3100:
+        dataset.loc[i, 'MiscVal'] = 0
+    elif val > 3100 and val <= 6200:
+        dataset.loc[i, 'MiscVal'] = 1
+    elif val > 6200 and val <= 9300:
+        dataset.loc[i, 'MiscVal'] = 2
+    elif val > 9300 and val <= 12400:
+        dataset.loc[i, 'MiscVal'] = 3
+    else:
+        dataset.loc[i, 'MiscVal'] = 4
+
+dataset.drop('MiscValBand', axis=1, inplace=True)
+
+# Test set
+miscval = testset.MiscVal.copy()
+
+for i, val in miscval.iteritems():
+    if val <= 3100:
+        testset.loc[i, 'MiscVal'] = 0
+    elif val > 3100 and val <= 6200:
+        testset.loc[i, 'MiscVal'] = 1
+    elif val > 6200 and val <= 9300:
+        testset.loc[i, 'MiscVal'] = 2
+    elif val > 9300 and val <= 12400:
+        testset.loc[i, 'MiscVal'] = 3
+    else:
+        testset.loc[i, 'MiscVal'] = 4
+
+### Group living area ###
+# Train set
+dataset['LivAreaBand'] = pd.cut(dataset['GrLivArea'], 5)
+dataset['LivAreaBand']
+livBand = dataset.GrLivArea.copy()
+
+for i, val in livBand.iteritems():
+    if val <= 1395.6:
+        dataset.loc[i, 'LivAreaBand'] = 0
+    elif val > 1395.6 and val <= 2457.2:
+        dataset.loc[i, 'LivAreaBand'] = 1
+    elif val > 2457.2 and val <= 3518.8:
+        dataset.loc[i, 'LivAreaBand'] = 2
+    elif val > 3518.8 and val <= 4580.4:
+        dataset.loc[i, 'LivAreaBand'] = 3
+    else:
+        dataset.loc[i, 'LivAreaBand'] = 4
+
+### Consider number of bath (both basement and ground), bed (ground) and kitchen ###
 
 
-testset.FireplaceQu = testset.FireplaceQu.map({'Ex':5, 'Gd':4, 'TA':3, 'Fa':2, 'Po':1, 'none':0}).astype('int')
-testset.PoolQC = testset.PoolQC.map({'Ex':4, 'Gd':3, 'TA':2, 'Fa':1, 'none':0}).astype('int')
-testset.Fence = testset.Fence.map({'GdPrv':2, 'MnPrv':1, 'GdWo':2, 'MnWw':1, 'none':0}).astype('int')
-
-testset.isnull().sum()
-
-### Check dataset and testset have same dimension ###
-dataset.shape
-testset.shape
-
+                     
 
 '''
 
@@ -161,15 +193,11 @@ x_train = dataset.copy()
 x_test = testset.copy()
 
 
-'''
 ### Feature Scaling (due to MiscVal) ###
 from sklearn.preprocessing import StandardScaler
 sc_x = StandardScaler()
 x_train = sc_x.fit_transform(x_train)
 x_test = sc_x.transform(x_test)
-sc_y = StandardScaler()
-y_train = sc_y.fit_transform(y_train)
-'''
 
 x_train.dtypes
 x_test.dtypes
@@ -205,7 +233,6 @@ classifier.fit(x_train, y_train)
 y_pred = classifier.predict(x_test)
 acc_dec = round(classifier.score(x_train, y_train) *100, 2)
 
-'''
 ### Random Forest ###
 from sklearn.ensemble import RandomForestClassifier
 random_forest = RandomForestClassifier(n_estimators=100)
@@ -219,7 +246,7 @@ xgb = XGBClassifier()
 xgb.fit(x_train, y_train)
 y_pred = xgb.predict(x_test)
 acc_xgb = round(xgb.score(x_train, y_train) *100, 2)
-'''
+
 
 
 submission = pd.DataFrame({
