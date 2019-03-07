@@ -14,6 +14,7 @@ test_set.isnull().sum()
 types = train_set.dtypes.copy()
 types_null = pd.DataFrame(train_set.isnull().sum(), index = types.index)
 
+pd.options.mode.chained_assignment = None
 '''
 ### drop rows that have relatively small number of rows with missing values ###
 train_set.dropna(axis=0, subset=['BsmtQual','BsmtCond', 'BsmtExposure', 'BsmtFinType1', 
@@ -46,6 +47,7 @@ Only consider columns with quality rating
 # Fence   -> 1179 null values 
 
 # GrLivArea    -> total area
+# TotalBsmtSF  -> Bsmt Area
 # TotRmsAbvGrd
 
 '''
@@ -53,16 +55,21 @@ Only consider columns with quality rating
 ### Extract columns that are needed ###
 dataset = train_set[['OverallQual', 'OverallCond','ExterQual','ExterCond','HeatingQC','KitchenQual',
                      'MiscVal','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1','BsmtFinType2',
-                     'FireplaceQu','GarageQual','GarageCond','PoolQC','Fence', 'GrLivArea', 'TotRmsAbvGrd']]
+                     'FireplaceQu', 'GarageCars', 'GarageArea', 'GarageQual','GarageCond','PoolQC','Fence', 
+                     'GrLivArea', 'TotRmsAbvGrd', 'TotalBsmtSF', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch',
+                     '3SsnPorch', 'ScreenPorch']]
                      
                      
 ### Extract columns that are needed ###
 testset = test_set[['OverallQual', 'OverallCond','ExterQual','ExterCond','HeatingQC','KitchenQual',
                      'MiscVal','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1','BsmtFinType2',
-                     'FireplaceQu','GarageQual','GarageCond','PoolQC','Fence', 'GrLivArea', 'TotRmsAbvGrd']]
+                     'FireplaceQu', 'GarageCars', 'GarageArea', 'GarageQual','GarageCond','PoolQC','Fence', 
+                     'GrLivArea', 'TotRmsAbvGrd', 'TotalBsmtSF', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch',
+                     '3SsnPorch', 'ScreenPorch']]
 
 dataset.isnull().sum()
 testset.isnull().sum()
+testset[testset['TotalBsmtSF'].isnull()]
 
 ### Fill null values with 'none' and change to ordinal data ###
 # Train set
@@ -73,6 +80,12 @@ dataset.BsmtFinType1.fillna('none', inplace=True)
 dataset.BsmtFinType2.fillna('none', inplace=True)
 dataset.GarageQual.fillna('none', inplace=True)
 dataset.GarageCond.fillna('none', inplace=True)
+dataset.GarageCars.fillna(0, inplace=True)
+dataset.GarageArea.fillna(0, inplace=True)
+dataset.GrLivArea.fillna(0, inplace=True)
+dataset.TotRmsAbvGrd.fillna(0, inplace=True)
+dataset.TotalBsmtSF.fillna(0, inplace=True)
+
 # Test set
 testset.KitchenQual.fillna('none', inplace=True)
 testset.BsmtQual.fillna('none', inplace=True)
@@ -82,6 +95,11 @@ testset.BsmtFinType1.fillna('none', inplace=True)
 testset.BsmtFinType2.fillna('none', inplace=True)
 testset.GarageQual.fillna('none', inplace=True)
 testset.GarageCond.fillna('none', inplace=True)
+testset.GarageCars.fillna(0, inplace=True)
+testset.GarageArea.fillna(0, inplace=True)
+testset.GrLivArea.fillna(0, inplace=True)
+testset.TotRmsAbvGrd.fillna(0, inplace=True)
+testset.TotalBsmtSF.fillna(0, inplace=True)
 
 ### Map quality to ordinal data ###
 quality = {'Ex':5, 'Gd':4, 'TA':3, 'Av':3, 'Fa':2, 'Po':1, 'Mn':1, 'No':1, 'none':0}
@@ -112,6 +130,19 @@ testset.GarageCond = [quality[item] for item in testset.GarageCond]
 testset.BsmtFinType1 = [quality2[item] for item in testset.BsmtFinType1]
 testset.BsmtFinType2 = [quality2[item] for item in testset.BsmtFinType2]
 
+dataset['Overall'] = dataset['OverallQual'] + dataset['OverallCond']
+dataset['GarageOverall'] = dataset['GarageQual'] + dataset['GarageCond']
+dataset['ExterOverall'] = dataset['ExterQual'] + dataset['ExterCond']
+dataset['BsmtOverall'] = dataset['BsmtQual'] + dataset['BsmtCond']
+dataset.drop(['OverallQual', 'OverallCond', 'GarageQual', 'GarageCond', 'ExterQual', 
+              'ExterCond', 'BsmtQual', 'BsmtCond'], axis=1, inplace=True)
+
+testset['Overall'] = testset['OverallQual'] + testset['OverallCond']
+testset['GarageOverall'] = testset['GarageQual'] + testset['GarageCond']
+testset['ExterOverall'] = testset['ExterQual'] + testset['ExterCond']
+testset['BsmtOverall'] = testset['BsmtQual'] + testset['BsmtCond']
+testset.drop(['OverallQual', 'OverallCond', 'GarageQual', 'GarageCond', 'ExterQual', 
+              'ExterCond', 'BsmtQual', 'BsmtCond'], axis=1, inplace=True)
 
 ### Drop PoolQC, Fence and FireplaceQu due to too many houses without these. ###
 dataset.drop(['PoolQC', 'Fence', 'FireplaceQu'], axis=1, inplace=True)
@@ -157,7 +188,6 @@ for i, val in miscval.iteritems():
 dataset['LivAreaBand'] = pd.cut(dataset['GrLivArea'], 5)
 dataset['LivAreaBand']
 livBand = dataset.GrLivArea.copy()
-
 for i, val in livBand.iteritems():
     if val <= 1395.6:
         dataset.loc[i, 'GrLivArea'] = 0
@@ -187,6 +217,112 @@ for i, val in livBand.iteritems():
         testset.loc[i, 'GrLivArea'] = 4
 
 
+### Group Basement SF ###
+# Train set
+dataset['TotalBsmtSFBand'] = pd.cut(dataset['TotalBsmtSF'], 5)
+dataset['TotalBsmtSFBand']
+bsmtSF = dataset.TotalBsmtSF.copy()
+for i, val in bsmtSF.iteritems():
+    if val <= 1222:
+        dataset.loc[i, 'TotalBsmtSF'] = 0
+    elif val > 1222 and val <= 2444:
+        dataset.loc[i, 'TotalBsmtSF'] = 1
+    elif val > 2444 and val <= 3666:
+        dataset.loc[i, 'TotalBsmtSF'] = 2
+    elif val > 3666 and val <= 4888:
+        dataset.loc[i, 'TotalBsmtSF'] = 3
+    else:
+        dataset.loc[i, 'TotalBsmtSF'] = 4
+
+dataset.drop('TotalBsmtSFBand', axis=1, inplace=True)
+
+# Test set
+bsmtSF = testset.TotalBsmtSF.copy()
+for i, val in bsmtSF.iteritems():
+    if val <= 1222:
+        testset.loc[i, 'TotalBsmtSF'] = 0
+    elif val > 1222 and val <= 2444:
+        testset.loc[i, 'TotalBsmtSF'] = 1
+    elif val > 2444 and val <= 3666:
+        testset.loc[i, 'TotalBsmtSF'] = 2
+    elif val > 3666 and val <= 4888:
+        testset.loc[i, 'TotalBsmtSF'] = 3
+    else:
+        testset.loc[i, 'TotalBsmtSF'] = 4
+
+### Group GarageCars and GarageArea
+# Train set
+dataset['Garage'] = dataset['GarageCars'] * dataset['GarageArea']
+dataset['GarageBand'] = pd.cut(dataset['Garage'], 5)
+dataset['GarageBand']
+garage = dataset.Garage.copy()
+for i, val in garage.iteritems():
+    if val <= 1084.8:
+        dataset.loc[i, 'Garage'] = 0
+    elif val > 1048.8 and val <= 2169.6:
+        dataset.loc[i, 'Garage'] = 1
+    elif val > 2169.6 and val <= 3254.4:
+        dataset.loc[i, 'Garage'] = 2
+    elif val > 3254.4 and val < 4339.2:
+        dataset.loc[i, 'Garage'] = 3
+    else:
+        dataset.loc[i, 'Garage'] = 4
+
+dataset.drop(['GarageBand', 'GarageCars', 'GarageArea'], axis=1, inplace=True)
+
+# Test set
+testset['Garage'] = testset['GarageCars'] * testset['GarageArea']
+garage = testset.Garage.copy()
+for i, val in garage.iteritems():
+    if val <= 1084.8:
+        testset.loc[i, 'Garage'] = 0
+    elif val > 1048.8 and val <= 2169.6:
+        testset.loc[i, 'Garage'] = 1
+    elif val > 2169.6 and val <= 3254.4:
+        testset.loc[i, 'Garage'] = 2
+    elif val > 3254.4 and val < 4339.2:
+        testset.loc[i, 'Garage'] = 3
+    else:
+        testset.loc[i, 'Garage'] = 4
+
+testset.drop(['GarageCars', 'GarageArea'], axis=1, inplace=True)
+
+### Group entire porch size ###
+# Train set
+dataset['PorchSF'] = dataset['WoodDeckSF'] + dataset['OpenPorchSF'] + dataset['EnclosedPorch'] + dataset['3SsnPorch'] + dataset['ScreenPorch']
+dataset['PorchSFBand'] = pd.cut(dataset['PorchSF'], 5)
+dataset['PorchSFBand']
+PorchSF = dataset.PorchSF.copy()
+for i, val in PorchSF.iteritems():
+    if val <= 205.4:
+        dataset.loc[i, 'PorchSF'] = 0
+    elif val > 205.4 and val <= 410.8:
+        dataset.loc[i, 'PorchSF'] = 1
+    elif val > 410.8 and val <= 616.2:
+        dataset.loc[i, 'PorchSF'] = 2
+    elif val > 616.2 and val < 821.6:
+        dataset.loc[i, 'PorchSF'] = 3
+    else:
+        dataset.loc[i, 'PorchSF'] = 4
+
+dataset.drop(['PorchSFBand', 'OpenPorchSF', 'WoodDeckSF', 'EnclosedPorch', '3SsnPorch', 'ScreenPorch'], axis=1, inplace=True)
+
+# Test set
+testset['PorchSF'] = testset['WoodDeckSF'] + testset['OpenPorchSF'] + testset['EnclosedPorch'] + testset['3SsnPorch'] + testset['ScreenPorch']
+PorchSF = testset.PorchSF.copy()
+for i, val in PorchSF.iteritems():
+    if val <= 205.4:
+        testset.loc[i, 'PorchSF'] = 0
+    elif val > 205.4 and val <= 410.8:
+        testset.loc[i, 'PorchSF'] = 1
+    elif val > 410.8 and val <= 616.2:
+        testset.loc[i, 'PorchSF'] = 2
+    elif val > 616.2 and val < 821.6:
+        testset.loc[i, 'PorchSF'] = 3
+    else:
+        testset.loc[i, 'PorchSF'] = 4
+
+testset.drop(['OpenPorchSF', 'WoodDeckSF', 'EnclosedPorch', '3SsnPorch', 'ScreenPorch'], axis=1, inplace=True)
 '''
 
 Machine Learning models
@@ -197,16 +333,10 @@ test_pass = test_set.Id
 x_train = dataset.copy()
 x_test = testset.copy()
 
-
-### Feature Scaling (due to MiscVal) ###
 from sklearn.preprocessing import StandardScaler
 sc_x = StandardScaler()
 x_train = sc_x.fit_transform(x_train)
 x_test = sc_x.transform(x_test)
-
-x_train.dtypes
-x_test.dtypes
-y_train.dtypes
 
 ### Logistic Regression ###
 from sklearn.linear_model import LogisticRegression
@@ -215,6 +345,12 @@ logistic.fit(x_train, y_train)
 y_pred = logistic.predict(x_test)
 acc_log = round(logistic.score(x_train, y_train) * 100,2)
 
+
+train_df = dataset.copy()
+coeff_df = pd.DataFrame(train_df.columns)
+coeff_df.columns = ['Feature']
+coeff_df["Correlation"] = pd.Series(logistic.coef_[0])
+coeff_df.sort_values(by='Correlation', ascending=False)
 
 ### Support Vector Machine ###
 from sklearn.svm import SVC
@@ -240,18 +376,18 @@ acc_dec = round(classifier.score(x_train, y_train) *100, 2)
 
 ### Random Forest ###
 from sklearn.ensemble import RandomForestClassifier
-random_forest = RandomForestClassifier(n_estimators=100)
+random_forest = RandomForestClassifier(n_estimators=300)
 random_forest.fit(x_train, y_train)
 y_pred = random_forest.predict(x_test)
 acc_random_forest = round(random_forest.score(x_train, y_train) *100, 2)
-
+'''
 ### XGBoost ###
 from xgboost import XGBClassifier
 xgb = XGBClassifier()
 xgb.fit(x_train, y_train)
 y_pred = xgb.predict(x_test)
 acc_xgb = round(xgb.score(x_train, y_train) *100, 2)
-
+'''
 
 
 submission = pd.DataFrame({
@@ -260,7 +396,6 @@ submission = pd.DataFrame({
                            })
 submission.to_csv('submission.csv', index=False)
 
-submission.shape
 
 
 
