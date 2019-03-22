@@ -135,14 +135,12 @@ x_test.isnull().sum()
 x_train.dtypes
 x_test.dtypes
 y_train = y_train.astype('int')
-'''
+
 from sklearn.preprocessing import StandardScaler
 sc_x = StandardScaler()
 x_train = sc_x.fit_transform(x_train)
 x_test = sc_x.transform(x_test)
-sc_y = StandardScaler()
-y_train = sc_y.fit_transform(y_train)
-'''
+
 ### Logistic Regression ###
 from sklearn.linear_model import LogisticRegression
 logistic = LogisticRegression(random_state=0)
@@ -150,40 +148,41 @@ logistic.fit(x_train, y_train)
 y_pred = logistic.predict(x_test)
 acc_log = round(logistic.score(x_train, y_train) * 100,2)
 
+'''
 train_df = x_train.copy()
 coeff_df = pd.DataFrame(train_df.columns)
 coeff_df.columns = ['Feature']
 coeff_df["Correlation"] = pd.Series(logistic.coef_[0])
 coeff_df.sort_values(by='Correlation', ascending=False)
-
+'''
 ### Support Vector Machine ###
-from sklearn.svm import SVC
-svc = SVC()
-svc.fit(x_train, y_train)
-y_pred = svc.predict(x_test)
-acc_svc = round(svc.score(x_train, y_train)*100, 2)
+from sklearn.svm import SVR
+svr = SVR()
+svr.fit(x_train, y_train)
+y_pred = svr.predict(x_test)
+acc_svc = round(svr.score(x_train, y_train)*100, 2)
 
 ### K-NN ###
-from sklearn.neighbors import KNeighborsClassifier
-knn = KNeighborsClassifier(n_neighbors = 3)
+from sklearn.neighbors import KNeighborsRegressor
+knn = KNeighborsRegressor(n_neighbors = 2)
 knn.fit(x_train, y_train)
 y_pred = knn.predict(x_test)
 acc_knn = round(knn.score(x_train, y_train) *100, 2)
 
-
 ### Decision Tree ###
-from sklearn.tree import DecisionTreeClassifier
-classifier = DecisionTreeClassifier(criterion = 'entropy', random_state=0)
+from sklearn.tree import DecisionTreeRegressor
+classifier = DecisionTreeRegressor(random_state=0)
 classifier.fit(x_train, y_train)
 y_pred = classifier.predict(x_test)
 acc_dec = round(classifier.score(x_train, y_train) *100, 2)
 
 ### Random Forest ###
-from sklearn.ensemble import RandomForestClassifier
-random_forest = RandomForestClassifier(n_estimators=300)
+from sklearn.ensemble import RandomForestRegressor
+random_forest = RandomForestRegressor(n_estimators=100)
 random_forest.fit(x_train, y_train)
 y_pred = random_forest.predict(x_test)
 acc_random_forest = round(random_forest.score(x_train, y_train) *100, 2)
+
 
 
 submission = pd.DataFrame({
